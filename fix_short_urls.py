@@ -1,23 +1,35 @@
+"""
+Reads file named bloglinks.txt containing a blog description/name followed
+by a dash (-) then a URL either long or short.  
+
+If the URL is a short URL created by LinkedIn ( lnkd.in ) the long URL
+will be fetched.  A new file named expandedBlogLinks.txt will be created
+that contains both the description/name of the blog and the expanded URL.
+
+If the URL is not lnkd.in it will be copied as is to the new file.
+"""
+
 import requests
 
 SHORT_URL = 'lnkd.in'
 LINE_CONTAINING_URL_IN_HTML = 'data-tracking-control-name="external_url_click"'
-listForNewFile = []
+list_for_new_file = []
 
 with open('bloglinks.txt', 'r', encoding="utf-8") as f:
     sourcefile = f.readlines()
     for line in sourcefile:
-        newlineDescription = line.split(" - ")
+        description_url_split = line.split(" - ")
         if SHORT_URL in line:
             # Exp: Microsoft - https://lnkd.in/g-UEZMxC
-            url = newlineDescription[1].strip()
-            httpRequest = requests.get(url, timeout=10)
-            for r_line in httpRequest.text.split('\n'):
-                if LINE_CONTAINING_URL_IN_HTML in r_line:
-                    expandedURL = r_line.split('href="')[-1].rstrip('/>"')
-                    listForNewFile.append(newlineDescription[0] + " - " + expandedURL + '\n')
+            url = description_url_split[1].strip()
+            http_request = requests.get(url, timeout=10)
+            for request_line in http_request.text.split('\n'):
+                if LINE_CONTAINING_URL_IN_HTML in request_line:
+                    expanded_url = request_line.split('href="')[-1].rstrip('/>"')
+                    list_for_new_file.append(description_url_split[0] + " - " + expanded_url + '\n')
         else:
-            listForNewFile.append(line)
+            # before appending remove trailing "/" from URL if it exists
+            list_for_new_file.append(line.rstrip('/\n') + "\n")
 
 with open('expandedBlogLinks.txt', 'w', encoding="utf-8") as newfile:
-    newfile.writelines(listForNewFile)
+    newfile.writelines(list_for_new_file)
